@@ -2,13 +2,19 @@
 This technical test requires you to design and implement a **Task Management System** using **Next.js**, **Tailwind CSS**, and **Flowbite**. The system will help MicroboxLabs assign and manage tasks efficiently, with capabilities for assigning tasks to users or groups.
 
 #### **Before You Begin**
-Create a private GitHub repository and invite the provided collaborators: `@korutx`, `@odtorres`. Should you have any questions, contact `devtest@microboxlabs.io`.  
-**Title of the project**: Fullstack-Test-(Last Name)
+Fork this repository and invite the provided collaborators: `@korutx`, `@odtorres`. Should you have any questions, contact `devtest@microboxlabs.com`.  
 
 #### **Problem Description**
 MicroboxLabs needs a simple task management solution to help organize internal work and track the progress of tasks assigned to employees. This system will be used by both Admins to manage tasks and by employees to view and update their assigned work.
 
 The application will allow **Admin** users to create tasks and assign them to either individual users or groups, and **Regular** users to manage their assigned tasks.
+
+#### **Guidelines**
+- We provide a basic Flowbite + Next.js template to get you started.
+- You can use any additional libraries you see fit, but make sure to justify your choices.
+- Flowbite documentation is available [here](https://flowbite-react.com/docs/getting-started/introduction).
+- Tailwind CSS documentation is available [here](https://tailwindcss.com/docs/utility-first).
+- Next.js documentation is available [here](https://nextjs.org/docs).
 
 #### **Core Requirements**
 The goal is to create a web application where users can **create**, **assign**, **view**, and **update** tasks. The key features are as follows:
