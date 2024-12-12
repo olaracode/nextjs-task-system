@@ -4,9 +4,18 @@ import {
   pgTable,
   text,
   primaryKey,
+  pgEnum,
   integer,
+  unique,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
+import { sql } from "drizzle-orm";
+export const userRoleEnum = pgEnum("user_role", ["USER", "ADMIN"]);
+export const taskPriorityEnum = pgEnum("task_priority", [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+]);
 
 export const users = pgTable("user", {
   id: text("id")
@@ -16,6 +25,7 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  role: userRoleEnum("role").default("USER").notNull(),
 });
 
 export const accounts = pgTable(
@@ -82,5 +92,66 @@ export const authenticators = pgTable(
     compositePK: primaryKey({
       columns: [authenticator.userId, authenticator.credentialID],
     }),
+  }),
+);
+
+// New tables for groups and tasks
+export const groups = pgTable("group", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").unique().notNull(),
+});
+
+export const groupMemberships = pgTable(
+  "group_membership",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    groupId: text("groupId")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    unqiueGroupMembership: unique().on(table.userId, table.groupId),
+  }),
+);
+
+export const tasks = pgTable(
+  "task",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    title: text("title").notNull(),
+    description: text("description"),
+
+    // Creator of the task (must be an admin)
+    creatorId: text("creator_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Task can be assigned to a user or a group
+    assignedToUserId: text("assigned_to_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+
+    assignedToGroupId: text("assigned_to_group_id").references(
+      () => groups.id,
+      { onDelete: "set null" },
+    ),
+
+    dueDate: timestamp("due_date", { mode: "date" }).notNull(),
+    priority: taskPriorityEnum("priority").default("MEDIUM").notNull(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    assignmentCheck: sql`(("assigned_to_user_id" IS NULL)::int + ("assigned_to_group_id" IS NULL)::int) = 1`,
   }),
 );

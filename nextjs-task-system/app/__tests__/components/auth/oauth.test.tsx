@@ -2,7 +2,7 @@
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi, describe, it, expect, afterEach } from "vitest";
-import GithubOAuth from "../../components/auth/oauth";
+import GithubOAuth from "../../../components/auth/oauth";
 import * as authLib from "@/lib/auth";
 
 // Mock the auth library
