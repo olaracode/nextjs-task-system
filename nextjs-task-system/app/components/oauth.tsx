@@ -1,9 +1,9 @@
-import { signIn } from "@/app/lib/auth";
+import { signIn } from "@/lib/auth";
 import { Github } from "lucide-react";
 
 export default function GithubOAuth() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       <form
         action={async () => {
           "use server";
