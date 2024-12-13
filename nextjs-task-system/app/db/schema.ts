@@ -10,11 +10,18 @@ import {
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { sql } from "drizzle-orm";
+
 export const userRoleEnum = pgEnum("user_role", ["USER", "ADMIN"]);
 export const taskPriorityEnum = pgEnum("task_priority", [
   "LOW",
   "MEDIUM",
   "HIGH",
+]);
+export const taskStatusEnum = pgEnum("task_status", [
+  "PENDING",
+  "PROGRESS",
+  "FINISHED",
+  "ARCHIVED",
 ]);
 
 export const users = pgTable("user", {
@@ -147,6 +154,7 @@ export const tasks = pgTable(
 
     dueDate: timestamp("due_date", { mode: "date" }).notNull(),
     priority: taskPriorityEnum("priority").default("MEDIUM").notNull(),
+    status: taskStatusEnum("status").default("PENDING").notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
