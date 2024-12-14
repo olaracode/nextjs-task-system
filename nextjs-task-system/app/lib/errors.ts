@@ -6,7 +6,7 @@ class ApiErrors {
       path: err.path.join("."),
       message: err.message,
     }));
-    return NextResponse.json({ errors: formattedErrors }, { status: 400 });
+    return NextResponse.json({ error: formattedErrors }, { status: 400 });
   }
   unauthorized() {
     return NextResponse.json(
@@ -15,6 +15,26 @@ class ApiErrors {
         message: "You must be logged in to access this resource",
       },
       { status: 401 },
+    );
+  }
+  miscError(error: string, message: string, status: number) {
+    return NextResponse.json(
+      {
+        error,
+        message,
+      },
+      {
+        status,
+      },
+    );
+  }
+  server() {
+    return NextResponse.json(
+      {
+        error: "Server Error",
+        message: "There has been an error, try again later",
+      },
+      { status: 500 },
     );
   }
 }

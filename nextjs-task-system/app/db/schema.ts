@@ -12,17 +12,37 @@ import type { AdapterAccountType } from "next-auth/adapters";
 import { sql } from "drizzle-orm";
 
 export const userRoleEnum = pgEnum("user_role", ["USER", "ADMIN"]);
+export type UserRoles = (typeof userRoleEnum.enumValues)[number];
+export const UserRoleValues = {
+  USER: "USER",
+  ADMIN: "ADMIN",
+} as const;
+
 export const taskPriorityEnum = pgEnum("task_priority", [
   "LOW",
   "MEDIUM",
   "HIGH",
 ]);
+export type TaskPriority = (typeof taskPriorityEnum.enumValues)[number];
+export const TaskPriorityValues = {
+  LOW: "LOW",
+  MEDIUM: "MEDIUM",
+  HIGH: "HIGH",
+} as const;
+
 export const taskStatusEnum = pgEnum("task_status", [
   "PENDING",
   "PROGRESS",
   "FINISHED",
   "ARCHIVED",
 ]);
+export type TaskStatus = (typeof taskStatusEnum.enumValues)[number];
+export const TaskStatusValues = {
+  PENDING: "PENDING",
+  PROGRESS: "PROGRESS",
+  FINISHED: "FINISHED",
+  ARCHIVED: "ARCHIVED",
+};
 
 export const users = pgTable("user", {
   id: text("id")
