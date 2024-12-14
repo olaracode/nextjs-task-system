@@ -19,12 +19,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-export function unauthorized() {
-  return NextResponse.json(
-    {
-      error: "Authentication required",
-      message: "You must be logged in to access this resource",
-    },
-    { status: 401 },
-  );
-}
+// Th

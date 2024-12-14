@@ -10,11 +10,9 @@ export const createTaskSchema = z.object({
 
   description: z.string().optional(),
 
-  dueDate: z.coerce
-    .date()
-    .refine((date) => date >= new Date(), {
-      message: "Due date must be in the future",
-    }),
+  dueDate: z.coerce.date().refine((date) => date >= new Date(), {
+    message: "Due date must be in the future",
+  }),
 
   priority: z.enum(taskPriorityEnum.enumValues).optional().default("MEDIUM"),
 });
