@@ -1,7 +1,35 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { isUserAdmin, queryErrors } from ".";
 import { db } from "..";
 import { groupMemberships, groups, users } from "../schema";
+
+// For users we return the groups they are a part of
+// For admins we return all the groups with the users
+export async function getGroups(userId: string) {
+  const isAdmin = await isUserAdmin(userId);
+  if (isAdmin) {
+    const result = await db.execute(
+      sql`SELECT g.*, gm.* 
+          FROM "group" g
+          LEFT JOIN group_membership gm ON g.id = gm."groupId"`,
+    );
+
+    console.log(result);
+
+    return await db.query.groups.findMany({
+      with: {
+        memberships: true,
+      },
+    });
+  } else {
+    return await db.query.groupMemberships.findMany({
+      where: eq(groupMemberships.userId, userId),
+      with: {
+        group: true,
+      },
+    });
+  }
+}
 
 export async function createGroup(userId: string, name: string) {
   await isUserAdmin(userId);
@@ -12,6 +40,24 @@ export async function deleteGroup(userId: string, groupId: string) {
   await isUserAdmin(userId);
 
   return db.delete(groups).where(eq(groups.id, groupId)).returning();
+}
+
+export async function updateGroup(
+  userId: string,
+  groupId: string,
+  name: string,
+) {
+  await isUserAdmin(userId);
+  const groupExist = await db.query.groups.findFirst({
+    where: eq(groups.id, groupId),
+  });
+  if (!groupExist) throw new Error(queryErrors.notFound);
+
+  return await db
+    .update(groups)
+    .set({ name })
+    .where(eq(groups.id, groupId))
+    .returning();
 }
 
 export async function createUserMembership(
@@ -31,6 +77,7 @@ export async function createUserMembership(
 
   const userInGroup = await userMembership(targetId, groupId);
   if (userInGroup) throw new Error(queryErrors.duplicate);
+  console.log(userInGroup);
 
   return await db
     .insert(groupMemberships)
@@ -52,7 +99,7 @@ export async function userMembership(userId: string, groupId: string) {
   return await db.query.groupMemberships.findFirst({
     where: and(
       eq(groupMemberships.userId, userId),
-      eq(groupMemberships.id, groupId),
+      eq(groupMemberships.groupId, groupId),
     ),
   });
 }

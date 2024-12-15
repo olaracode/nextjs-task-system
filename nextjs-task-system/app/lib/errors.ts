@@ -8,6 +8,17 @@ class ApiErrors {
     }));
     return NextResponse.json({ error: formattedErrors }, { status: 400 });
   }
+  badRequest(details?: string) {
+    return NextResponse.json(
+      {
+        error: "Bad request",
+        message: details || "There has been an error with the request",
+      },
+      {
+        status: 400,
+      },
+    );
+  }
   unauthorized() {
     return NextResponse.json(
       {
