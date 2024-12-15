@@ -1,8 +1,13 @@
 import { eq, not } from "drizzle-orm";
 import { CreateTaskInput } from "../z-tasks";
 import { db } from "..";
-import { tasks, TaskStatus } from "../schema";
+import { TaskPriority, tasks, TaskStatus } from "../schema";
 import { isUserAdmin, queryErrors } from ".";
+
+export type UpdateTaskT = {
+  status?: TaskStatus;
+  priority?: TaskPriority;
+};
 
 export async function createTask(
   input: CreateTaskInput,
@@ -32,25 +37,18 @@ export async function deleteTask(taskId: string, userId: string) {
   return await db.delete(tasks).where(eq(tasks.id, taskId));
 }
 
-export async function changeTaskStatus(taskId: string, status: TaskStatus) {
+export async function updateTask(taskId: string, updateValues: UpdateTaskT) {
   const task = await getTaskById(taskId);
   if (!task) throw new Error(queryErrors.notFound);
-
-  return await db.update(tasks).set({ status }).where(eq(tasks.id, taskId));
-}
-
-export async function assignTask(
-  userId: string,
-  taskId: string,
-  assigneeId: string,
-  isGroup: boolean = false,
-) {
-  await isUserAdmin(userId);
-
-  const task = await getTaskById(taskId);
-  if (!task) throw new Error(queryErrors.notFound);
-
-  //
+  return await db
+    .update(tasks)
+    .set(
+      updateValues.status
+        ? { status: updateValues.status }
+        : { priority: updateValues.priority },
+    )
+    .where(eq(tasks.id, taskId))
+    .returning();
 }
 
 export async function getTaskById(taskId: string) {
@@ -61,6 +59,9 @@ export async function getTaskById(taskId: string) {
 
 // returns the tasks that are not archived
 export async function getActiveTasks() {
+  // TODO -> Should receive the user id and check its role
+  // TODO -> IF it's an admin it returns all the active tasks
+  // TODO -> IF it's an user it returns only the tasks assigned to them or a group they belong to
   const allTasks = await db.query.tasks.findMany({
     where: not(eq(tasks.status, "ARCHIVED")),
   });
