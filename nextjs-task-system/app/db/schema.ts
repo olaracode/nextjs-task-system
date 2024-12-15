@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   timestamp,
@@ -11,6 +12,7 @@ import {
 import type { AdapterAccountType } from "next-auth/adapters";
 import { sql } from "drizzle-orm";
 
+// Enums
 export const userRoleEnum = pgEnum("user_role", ["USER", "ADMIN"]);
 export type UserRoles = (typeof userRoleEnum.enumValues)[number];
 export const UserRoleValues = {
@@ -44,6 +46,7 @@ export const TaskStatusValues = {
   ARCHIVED: "ARCHIVED",
 };
 
+// Tables
 export const users = pgTable("user", {
   id: text("id")
     .primaryKey()
@@ -54,6 +57,15 @@ export const users = pgTable("user", {
   image: text("image"),
   role: userRoleEnum("role").default("USER").notNull(),
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts),
+  sessions: many(sessions),
+  authenticators: many(authenticators),
+  groupMemberships: many(groupMemberships),
+  createdTasks: many(tasks, { relationName: "creator" }),
+  assignedTasks: many(tasks, { relationName: "assignedUser" }),
+}));
 
 export const accounts = pgTable(
   "account",
@@ -79,6 +91,12 @@ export const accounts = pgTable(
   }),
 );
 
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}));
 export const sessions = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
@@ -86,6 +104,13 @@ export const sessions = pgTable("session", {
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { mode: "date" }).notNull(),
 });
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
 
 export const verificationTokens = pgTable(
   "verificationToken",
@@ -122,13 +147,23 @@ export const authenticators = pgTable(
   }),
 );
 
-// New tables for groups and tasks
+export const authenticatorsRelations = relations(authenticators, ({ one }) => ({
+  user: one(users, {
+    fields: [authenticators.userId],
+    references: [users.id],
+  }),
+}));
 export const groups = pgTable("group", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name").unique().notNull(),
 });
+
+export const groupsRelations = relations(groups, ({ many }) => ({
+  memberships: many(groupMemberships),
+  tasks: many(tasks),
+}));
 
 export const groupMemberships = pgTable(
   "group_membership",
@@ -148,6 +183,19 @@ export const groupMemberships = pgTable(
   }),
 );
 
+export const groupMembershipsRelations = relations(
+  groupMemberships,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [groupMemberships.userId],
+      references: [users.id],
+    }),
+    group: one(groups, {
+      fields: [groupMemberships.groupId],
+      references: [groups.id],
+    }),
+  }),
+);
 export const tasks = pgTable(
   "task",
   {
@@ -156,26 +204,21 @@ export const tasks = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     title: text("title").notNull(),
     description: text("description"),
-
-    // Creator of the task (must be an admin)
     creatorId: text("creator_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-
-    // Task can be assigned to a user or a group
     assignedToUserId: text("assigned_to_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
-
     assignedToGroupId: text("assigned_to_group_id").references(
       () => groups.id,
-      { onDelete: "set null" },
+      {
+        onDelete: "set null",
+      },
     ),
-
     dueDate: timestamp("due_date", { mode: "date" }).notNull(),
     priority: taskPriorityEnum("priority").default("MEDIUM").notNull(),
     status: taskStatusEnum("status").default("PENDING").notNull(),
-
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -183,3 +226,18 @@ export const tasks = pgTable(
     assignmentCheck: sql`(("assigned_to_user_id" IS NULL)::int + ("assigned_to_group_id" IS NULL)::int) = 1`,
   }),
 );
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  creator: one(users, {
+    fields: [tasks.creatorId],
+    references: [users.id],
+  }),
+  assignedUser: one(users, {
+    fields: [tasks.assignedToUserId],
+    references: [users.id],
+  }),
+  assignedGroup: one(groups, {
+    fields: [tasks.assignedToGroupId],
+    references: [groups.id],
+  }),
+}));
