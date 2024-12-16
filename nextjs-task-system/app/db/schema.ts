@@ -63,8 +63,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   authenticators: many(authenticators),
   groupMemberships: many(groupMemberships),
-  createdTasks: many(tasks, { relationName: "creator" }),
-  assignedTasks: many(tasks, { relationName: "assignedUser" }),
+  createdTasks: many(tasks, { relationName: "users_created_tasks" }),
+  assignedTasks: many(tasks, { relationName: "users_assigned_tasks" }),
+  comments: many(comments),
 }));
 
 export const accounts = pgTable(
@@ -231,13 +232,41 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   creator: one(users, {
     fields: [tasks.creatorId],
     references: [users.id],
+    relationName: "users_created_tasks",
   }),
   assignedUser: one(users, {
     fields: [tasks.assignedToUserId],
     references: [users.id],
+    relationName: "users_assigned_tasks",
   }),
   assignedGroup: one(groups, {
     fields: [tasks.assignedToGroupId],
     references: [groups.id],
+  }),
+}));
+
+export const comments = pgTable("comment", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  taskId: text("task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  task: one(tasks, {
+    fields: [comments.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [comments.userId],
+    references: [users.id],
   }),
 }));

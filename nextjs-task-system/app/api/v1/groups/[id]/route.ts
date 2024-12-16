@@ -28,15 +28,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     if (!body.userId) return ApiError.badRequest("User id is required");
 
-    const newMembership = await createUserMembership(
+    const [membership] = await createUserMembership(
       session.user.id,
       body.userId,
       id,
     );
-    if (!newMembership) return ApiError.server();
+    if (!membership) return ApiError.server();
     return NextResponse.json(
       {
-        membership: newMembership,
+        membership,
       },
       {
         status: 201,
@@ -62,10 +62,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
   const id = (await params).id;
   try {
-    const updatedGroup = await updateGroup(session.user.id, id, body.name);
+    const [group] = await updateGroup(session.user.id, id, body.name);
     return NextResponse.json(
       {
-        group: updatedGroup,
+        group: group,
       },
       {
         status: 200,
@@ -83,7 +83,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
   const id = (await params).id;
   try {
-    const response = await deleteGroup(session.user.id, id);
+    const [response] = await deleteGroup(session.user.id, id);
     if (!response) throw new Error("unkwown");
     return NextResponse.json(
       {

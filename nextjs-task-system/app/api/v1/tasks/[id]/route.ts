@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { ApiError } from "@/lib/errors";
-import { updateTask, UpdateTaskT } from "@/db/queries/task";
+import {
+  updateTask,
+  updateTaskPriorityStatus,
+  UpdateTaskT,
+} from "@/db/queries/task";
 import { deleteTask, getTaskById } from "@/db/queries/task";
-
+import { updateTaskSchema } from "@/db/z-tasks";
+import { RouteParams } from "@/types/routes";
 // params are now async and need to be waited:
 // https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes
-
-type RouteParams = {
-  params: Promise<{ id: string }>;
-};
 
 // ? Is it required a details endpoint?
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -29,9 +30,37 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   return NextResponse.json({ task }, { status: 200 });
 }
 
+// Use Put to update title, description, dueDate
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   const session = await auth();
-  if (!session) return ApiError.unauthorized();
+  if (!session?.user?.id) return ApiError.unauthorized();
+
+  const id = (await params).id;
+
+  try {
+    const body = await request.json();
+    const parsedBody = updateTaskSchema.parse(body);
+    const [task] = await updateTask(session.user?.id, id, parsedBody);
+    if (!task) return ApiError.server();
+    return NextResponse.json(
+      {
+        task,
+      },
+      {
+        status: 200,
+      },
+    );
+  } catch (error) {
+    if (error instanceof Error) return ApiError.queryError(error);
+    return ApiError.server();
+  }
+}
+
+// Use patch to update the priority or status
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const session = await auth();
+  if (!session?.user?.id) return ApiError.unauthorized();
+
   const id = (await params).id;
 
   try {
@@ -43,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         400,
       );
     }
-    const [updatedTask] = await updateTask(
+    const [updatedTask] = await updateTaskPriorityStatus(
       id,
       status ? { status } : { priority },
     );

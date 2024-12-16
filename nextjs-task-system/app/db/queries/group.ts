@@ -8,17 +8,13 @@ import { groupMemberships, groups, users } from "../schema";
 export async function getGroups(userId: string) {
   const isAdmin = await isUserAdmin(userId);
   if (isAdmin) {
-    const result = await db.execute(
-      sql`SELECT g.*, gm.* 
-          FROM "group" g
-          LEFT JOIN group_membership gm ON g.id = gm."groupId"`,
-    );
-
-    console.log(result);
-
     return await db.query.groups.findMany({
       with: {
-        memberships: true,
+        memberships: {
+          with: {
+            user: true,
+          },
+        },
       },
     });
   } else {
