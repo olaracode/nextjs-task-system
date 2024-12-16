@@ -1,24 +1,38 @@
-import React from "react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, Users, UserPlus, FolderPlus, Menu } from "lucide-react";
 
-export default function Nav() {
+export default function Navbar() {
   return (
-    <nav className="bg-white shadow dark:bg-gray-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          <div className="flex">
-            <div className="flex shrink-0 items-center">
-              {/* Todo: Replace name with SVG file */}
-              <Link
-                href="/dashboard"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
-              >
-                TaskMaster
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center"></div>
-        </div>
+    <nav className="bg-gray-800 p-4 text-white">
+      <div className="container mx-auto flex items-center justify-between">
+        <div className="text-xl font-bold">Task Manager</div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="text-white">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem>
+              <Users className="mr-2 h-4 w-4" />
+              <span>Users</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <UserPlus className="mr-2 h-4 w-4" />
+              <span>Groups</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </nav>
   );
