@@ -18,8 +18,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useTaskContext } from "@/contexts/TaskContext";
-import { CreateTaskInput } from "@/db/z-tasks";
+import { useUserContext } from "@/contexts/UserContext";
 export function NewTaskModal() {
+  const { isAdmin } = useUserContext();
   const { createTask } = useTaskContext();
   const [open, setOpen] = useState(false);
 
@@ -43,13 +44,13 @@ export function NewTaskModal() {
       setOpen(false);
     });
   };
-
+  if (!isAdmin) return;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>New Task</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
         </DialogHeader>
