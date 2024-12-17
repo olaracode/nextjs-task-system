@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useUserContext } from "@/contexts/UserContext";
+
 export function NewTaskModal() {
   const { isAdmin } = useUserContext();
   const { createTask } = useTaskContext();
@@ -30,7 +31,7 @@ export function NewTaskModal() {
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send this data to your backend
+
     createTask({
       title,
       description,

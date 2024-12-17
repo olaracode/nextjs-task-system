@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { Badge } from "../../ui/badge";
+import { Button } from "../../ui/button";
 import { TaskPriorityValues, TaskStatusValues } from "@/db/schema";
 import { Trash, Edit, Eye } from "lucide-react";
 import { useTaskContext } from "@/contexts/TaskContext";
@@ -27,6 +27,8 @@ import { TaskT } from "@/db/type";
 import { formatDate } from "@/lib/utils";
 import { useUserContext } from "@/contexts/UserContext";
 import TaskAssign from "./task-assign";
+import { Input } from "../../ui/input";
+import { NewTaskModal } from "./task-create";
 
 type ActiveModal = "edit" | "delete" | "assign" | "details" | null;
 export function TaskTable() {
@@ -34,6 +36,12 @@ export function TaskTable() {
   const { tasks, updateTaskPriority, updateTaskStatus } = useTaskContext();
   const [openModal, setOpenModal] = useState<ActiveModal>(null);
   const [currentTask, setCurrentTask] = useState<TaskT | null>(null);
+
+  const [filters, setFilters] = useState({
+    status: "",
+    priority: "",
+    search: "",
+  });
 
   function openDelete(task: TaskT) {
     setCurrentTask(task);
@@ -57,11 +65,76 @@ export function TaskTable() {
 
   function closeModal() {
     setOpenModal(null);
-    setCurrentTask(null);
   }
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus =
+      filters.status === "all" ||
+      !filters.status ||
+      task.status === filters.status;
+    const matchesPriority =
+      filters.priority === "all" ||
+      !filters.priority ||
+      task.priority === filters.priority;
+    const matchesSearch =
+      !filters.search ||
+      task.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      (task.description &&
+        task.description.toLowerCase().includes(filters.search.toLowerCase()));
+
+    return matchesStatus && matchesPriority && matchesSearch;
+  });
 
   return (
     <>
+      {/* Filter Inputs */}
+      <div className="mb-4 flex flex-col gap-4 md:flex-row ">
+        {/* Filter by Status */}
+        <Select
+          onValueChange={(value) => setFilters({ ...filters, status: value })}
+        >
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Filter by Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {Object.keys(TaskStatusValues).map((status) => (
+              <SelectItem key={status} value={status}>
+                {status.toLowerCase()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Filter by Priority */}
+        <Select
+          onValueChange={(value) => setFilters({ ...filters, priority: value })}
+        >
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Filter by Priority" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {Object.keys(TaskPriorityValues).map((priority) => (
+              <SelectItem key={priority} value={priority}>
+                {priority.toLowerCase()}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Search Input */}
+        <Input
+          type="text"
+          placeholder="Search title/description"
+          value={filters.search}
+          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          className="w-[250px] rounded border px-2 py-1"
+        />
+        <div className="flex">
+          <NewTaskModal />
+        </div>
+      </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -75,7 +148,7 @@ export function TaskTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <TableRow key={task.id}>
                 <TableCell className="font-medium">{task.title}</TableCell>
                 <TableCell>{formatDate(task.dueDate)}</TableCell>
@@ -201,7 +274,9 @@ export function TaskTable() {
         onClose={closeModal}
       />
       <TaskDetails
-        task={currentTask}
+        // use taskId to find the task dynamically inside the taskContext
+        // and make sure it rerenders the task comments on change
+        taskId={currentTask?.id}
         open={openModal === "details"}
         onClose={closeModal}
       />
