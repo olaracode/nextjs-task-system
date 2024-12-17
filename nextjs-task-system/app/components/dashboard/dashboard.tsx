@@ -1,23 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { TaskTable } from "./task-table";
-import { TaskT } from "@/db/type";
-import { NewTaskModal } from "./new-task-modal";
-import { toast } from "sonner";
+import { TaskTable } from "./tasks/task-table";
 import { useTaskContext } from "@/contexts/TaskContext";
+import { SkeletonTable } from "./tasks/task-table-skeleton";
 export default function Dashboard() {
   const { getTasks } = useTaskContext();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     setLoading(true);
     getTasks().finally(() => setLoading(false));
   }, []);
-  return (
-    <div>
-      <div className="mb-5">
-        <NewTaskModal />
-      </div>
-      {loading ? <p>Loading...</p> : <TaskTable />}
-    </div>
-  );
+  return <div>{loading ? <SkeletonTable /> : <TaskTable />}</div>;
 }

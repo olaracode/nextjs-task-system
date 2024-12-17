@@ -1,5 +1,9 @@
+import { auth } from "./lib/auth";
 import OAuth from "./components/auth/oauth";
-export default function Home() {
+import { redirect } from "next/navigation";
+export default async function Home() {
+  const session = await auth();
+  if (session) redirect("/dashboard");
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="absolute right-5 top-5"></div>
