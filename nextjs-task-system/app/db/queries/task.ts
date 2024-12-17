@@ -32,7 +32,7 @@ export async function createTask(
       creatorId: currentUserId,
     })
     .returning();
-  return newTask[0];
+  return await getTaskById(newTask[0].id);
 }
 
 export async function deleteTask(taskId: string, userId: string) {
@@ -54,7 +54,7 @@ export async function updateTask(
   const task = await getTaskById(taskId);
   if (!task) throw new Error(queryErrors.notFound);
   console.log(data);
-  const res = await db
+  await db
     .update(tasks)
     .set({
       title: data.title,
@@ -64,7 +64,7 @@ export async function updateTask(
     .where(eq(tasks.id, taskId))
     .returning();
 
-  return res;
+  return getTaskById(taskId);
 }
 
 export async function updateTaskPriorityStatus(
@@ -73,21 +73,25 @@ export async function updateTaskPriorityStatus(
 ) {
   const task = await getTaskById(taskId);
   if (!task) throw new Error(queryErrors.notFound);
-  return await db
+  await db
     .update(tasks)
     .set(
       updateValues.status
         ? { status: updateValues.status }
         : { priority: updateValues.priority },
     )
-    .where(eq(tasks.id, taskId))
-    .returning();
+    .where(eq(tasks.id, taskId));
+  return await getTaskById(taskId);
 }
 
 export async function getTaskById(taskId: string) {
   console.log(taskId);
   return await db.query.tasks.findFirst({
     where: eq(tasks.id, taskId),
+    with: {
+      assignedGroup: true,
+      assignedUser: true,
+    },
   });
 }
 
@@ -98,6 +102,10 @@ export async function getActiveTasks() {
   // TODO -> IF it's an user it returns only the tasks assigned to them or a group they belong to
   const allTasks = await db.query.tasks.findMany({
     where: not(eq(tasks.status, "ARCHIVED")),
+    with: {
+      assignedUser: true,
+      assignedGroup: true,
+    },
   });
   return allTasks;
 }
@@ -109,25 +117,27 @@ export async function assignTask(
   isUser: boolean = true,
 ) {
   await isUserAdmin(userId);
+  console.log(isUser, targetId);
   const targetExists = isUser
     ? await db.query.users.findFirst({
         where: eq(users.id, targetId),
       })
-    : await db.query.users.findFirst({
+    : await db.query.groups.findFirst({
         where: eq(groups.id, targetId),
       });
 
   const taskExists = await getTaskById(taskId);
   if (!targetExists || !taskExists) throw new Error(queryErrors.notFound);
 
-  return await db
+  await db
     .update(tasks)
     .set({
       assignedToGroupId: isUser ? null : targetId,
       assignedToUserId: isUser ? targetId : null,
     })
-    .where(eq(tasks.id, taskId))
-    .returning();
+    .where(eq(tasks.id, taskId));
+
+  return await getTaskById(taskId);
 }
 
 export async function removeAssigned(userId: string, taskId: string) {
@@ -136,11 +146,12 @@ export async function removeAssigned(userId: string, taskId: string) {
   const taskExists = await getTaskById(taskId);
   if (!taskExists) throw new Error(queryErrors.notFound);
 
-  return await db
+  await db
     .update(tasks)
     .set({ assignedToGroupId: null, assignedToUserId: null })
-    .where(eq(tasks.id, taskId))
-    .returning();
+    .where(eq(tasks.id, taskId));
+
+  return await getTaskById(taskId);
 }
 
 export async function createComment(

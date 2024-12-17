@@ -8,6 +8,12 @@ export async function getUsers(userId: string) {
   return db.query.users.findMany();
 }
 
+export async function getUserById(userId: string) {
+  return db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+}
+
 export async function updateUserRole(
   userId: string,
   targetUserId: string,

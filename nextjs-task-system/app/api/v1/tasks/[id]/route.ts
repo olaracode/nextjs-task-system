@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const body = await request.json();
     const parsedBody = updateTaskSchema.parse(body);
-    const [task] = await updateTask(session.user?.id, id, parsedBody);
+    const task = await updateTask(session.user?.id, id, parsedBody);
     if (!task) return ApiError.server();
     return NextResponse.json(
       {
@@ -72,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         400,
       );
     }
-    const [updatedTask] = await updateTaskPriorityStatus(
+    const updatedTask = await updateTaskPriorityStatus(
       id,
       status ? { status } : { priority },
     );

@@ -16,8 +16,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const body = await request.json();
     if (!body.targetId) return ApiError.badRequest("Target Id is required");
-    if (!body.isUser) return ApiError.badRequest("isUser is required");
-    const [task] = await assignTask(
+    if (!("isUser" in body)) return ApiError.badRequest("isUser is required");
+    const task = await assignTask(
       session.user.id,
       body.targetId,
       id,
@@ -46,7 +46,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const id = (await params).id;
 
   try {
-    const [task] = await removeAssigned(session.user.id, id);
+    const task = await removeAssigned(session.user.id, id);
     if (!task) return ApiError.server();
     return NextResponse.json(
       {
