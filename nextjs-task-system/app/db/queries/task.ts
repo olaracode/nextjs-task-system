@@ -10,6 +10,7 @@ import {
   users,
 } from "../schema";
 import { isUserAdmin, queryErrors } from ".";
+import { getUserById } from "./user";
 
 export type UpdateTaskT = {
   status?: TaskStatus;
@@ -176,6 +177,17 @@ export async function createComment(
     .insert(comments)
     .values({ userId, content, taskId })
     .returning();
+}
+
+export async function getComments(taskId: string) {
+  const task = await getTaskById(taskId);
+  if (!task) throw new Error(queryErrors.notFound);
+  return await db.query.comments.findMany({
+    where: eq(comments.taskId, taskId),
+    with: {
+      user: true,
+    },
+  });
 }
 
 export async function deleteComment(userId: string, commentId: string) {

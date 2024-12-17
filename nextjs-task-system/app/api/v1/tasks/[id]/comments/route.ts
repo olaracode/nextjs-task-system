@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { RouteParams } from "@/types/routes";
 import { auth } from "@/lib/auth";
 import { ApiError } from "@/lib/errors";
-import { createComment } from "@/db/queries/task";
+import { createComment, getComments } from "@/db/queries/task";
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const session = await auth();
   if (!session?.user?.id) return ApiError.unauthorized();
@@ -26,6 +26,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error(error);
     if (error instanceof Error) return ApiError.queryError(error);
+    return ApiError.server();
+  }
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const session = await auth();
+  if (!session?.user?.id) return ApiError.unauthorized();
+  const id = (await params).id;
+  try {
+    const comments = await getComments(id);
+    if (!comments) return ApiError.server();
+    return NextResponse.json(
+      {
+        comments,
+      },
+      {
+        status: 200,
+      },
+    );
+  } catch (error) {
     return ApiError.server();
   }
 }

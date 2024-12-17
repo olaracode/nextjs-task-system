@@ -11,4 +11,6 @@ export type UserT = InferSelectModel<typeof users>;
 
 export type GroupT = InferSelectModel<typeof groups>;
 
-export type CommentsT = InferSelectModel<typeof comments>;
+export type CommentsT = InferSelectModel<typeof comments> & {
+  user?: UserT;
+};
