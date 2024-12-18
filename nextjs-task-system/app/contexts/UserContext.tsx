@@ -9,7 +9,9 @@ import React, {
   useState,
 } from "react";
 import { UserT } from "@/db/type";
-import { redirect } from "next/navigation";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 interface UserContext {
   user: UserT | null;
   isLoading: boolean;
@@ -22,6 +24,8 @@ export const UserContext = createContext<UserContext | undefined>(undefined);
 export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const router = useRouter();
+
   const [user, setUser] = useState<UserT | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isAdmin = useMemo(() => user?.role === "ADMIN", [user]);
@@ -41,10 +45,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = useCallback(async () => {
     try {
-      const response = await fetch("/api/auth/logout");
-      if (!response.ok) return;
-      redirect("/");
+      await signOut({ callbackUrl: "/" }); // Redirect to home page after sign-out
+      toast.success("Come back later");
     } catch (error) {
+      toast.error("Logout failed");
       console.error(error);
     }
   }, []);

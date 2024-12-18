@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { TaskT } from "@/db/type";
 import { CreateTaskInput, UpdateTaskInput } from "@/db/z-tasks";
 import { ZodError } from "zod";
+import { comments } from "@/db/schema";
 
 // Define the shape of your context data (unchanged)
 interface TaskContextType {
@@ -20,6 +21,8 @@ interface TaskContextType {
     targetId: string,
   ) => Promise<void>;
   unassign: (taskId: string) => Promise<void>;
+  createComment: (taskId: string, comment: string) => Promise<void>;
+  getTaskComments: (taskId: string) => Promise<void>;
 }
 
 // Create the context with a default value
@@ -238,6 +241,59 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const createComment = useCallback(async (taskId: string, comment: string) => {
+    try {
+      const response = await fetch(`/api/v1/tasks/${taskId}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ comment }),
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        toast.error("There has been an error");
+        return;
+      }
+      const data = await response.json();
+      console.log(data);
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                id: task.id, // force re-render
+                comments: task.comments
+                  ? [data.comment, ...task.comments] // extend already existing comments
+                  : [data.comment], // create the comments array with the new comment
+              }
+            : task,
+        ),
+      );
+      toast.success("Comment created successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("There has been an error creating the comment");
+    }
+  }, []);
+
+  const getTaskComments = useCallback(async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/v1/tasks/${taskId}/comments`);
+      if (!response.ok) throw new Error("Unknown error");
+      const data = await response.json();
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? { ...task, id: task.id, comments: data.comments }
+            : task,
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+      // Do we want to throw an error?
+    }
+  }, []);
+
   // Create context value
   const contextValue = {
     tasks,
@@ -249,6 +305,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     createTask,
     assignTask,
     unassign,
+    createComment,
+    getTaskComments,
   };
 
   return (
