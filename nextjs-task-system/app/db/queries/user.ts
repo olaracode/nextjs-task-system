@@ -5,7 +5,15 @@ import { eq } from "drizzle-orm";
 
 export async function getUsers(userId: string) {
   await isUserAdmin(userId);
-  return db.query.users.findMany();
+  return db.query.users.findMany({
+    with: {
+      groupMemberships: {
+        with: {
+          group: true,
+        },
+      },
+    },
+  });
 }
 
 export async function getUserById(userId: string) {

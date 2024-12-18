@@ -1,8 +1,9 @@
-import { and, eq, not } from "drizzle-orm";
+import { and, eq, exists, inArray, not, or } from "drizzle-orm";
 import { CreateTaskInput, UpdateTaskInput } from "../z-tasks";
 import { db } from "..";
 import {
   comments,
+  groupMemberships,
   groups,
   TaskPriority,
   tasks,
@@ -97,18 +98,57 @@ export async function getTaskById(taskId: string) {
 }
 
 // returns the tasks that are not archived
-export async function getActiveTasks() {
-  // TODO -> Should receive the user id and check its role
-  // TODO -> IF it's an admin it returns all the active tasks
-  // TODO -> IF it's an user it returns only the tasks assigned to them or a group they belong to
-  const allTasks = await db.query.tasks.findMany({
-    where: not(eq(tasks.status, "ARCHIVED")),
+export async function getActiveTasks(userId: string) {
+  // If the user is an admin, return all active tasks
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: {
+      id: true,
+      role: true,
+    },
+    with: {
+      groupMemberships: {
+        columns: {
+          groupId: true,
+        },
+      },
+    },
+  });
+
+  if (!user) throw new Error(queryErrors.notFound);
+  const isAdmin = user.role === "ADMIN";
+  if (isAdmin) {
+    return await db.query.tasks.findMany({
+      where: not(eq(tasks.status, "ARCHIVED")),
+      with: {
+        assignedUser: true,
+        assignedGroup: true,
+      },
+    });
+  }
+
+  // For non-admin users, find:
+  // 1. Tasks directly assigned to the user
+  // 2. Tasks assigned to groups the user belongs to
+  const userGroupIds = user.groupMemberships.map(
+    (membership) => membership.groupId,
+  );
+
+  return await db.query.tasks.findMany({
+    where: and(
+      not(eq(tasks.status, "ARCHIVED")),
+      or(
+        eq(tasks.assignedToUserId, userId),
+        userGroupIds.length > 0
+          ? inArray(tasks.assignedToGroupId, userGroupIds)
+          : undefined,
+      ),
+    ),
     with: {
       assignedUser: true,
       assignedGroup: true,
     },
   });
-  return allTasks;
 }
 
 export async function assignTask(

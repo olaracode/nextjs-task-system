@@ -75,10 +75,16 @@ export async function createUserMembership(
   if (userInGroup) throw new Error(queryErrors.duplicate);
   console.log(userInGroup);
 
-  return await db
-    .insert(groupMemberships)
-    .values({ userId: targetId, groupId })
-    .returning();
+  await db.insert(groupMemberships).values({ userId: targetId, groupId });
+  return await db.query.groupMemberships.findFirst({
+    where: and(
+      eq(groupMemberships.groupId, groupId),
+      eq(groupMemberships.userId, targetId),
+    ),
+    with: {
+      group: true,
+    },
+  });
 }
 
 export async function removeUserMembership(
@@ -88,7 +94,8 @@ export async function removeUserMembership(
   await isUserAdmin(userId);
   return await db
     .delete(groupMemberships)
-    .where(eq(groupMemberships.id, membershipId));
+    .where(eq(groupMemberships.id, membershipId))
+    .returning();
 }
 
 export async function userMembership(userId: string, groupId: string) {

@@ -1,5 +1,5 @@
 import { InferSelectModel } from "drizzle-orm";
-import { comments, groups, tasks, users } from "./schema";
+import { comments, groupMemberships, groups, tasks, users } from "./schema";
 
 export type TaskT = InferSelectModel<typeof tasks> & {
   assignedUser?: UserT;
@@ -7,7 +7,13 @@ export type TaskT = InferSelectModel<typeof tasks> & {
   comments?: CommentsT[];
 };
 
-export type UserT = InferSelectModel<typeof users>;
+export type GroupMembershipT = InferSelectModel<typeof groupMemberships> & {
+  group?: GroupT;
+};
+
+export type UserT = InferSelectModel<typeof users> & {
+  groupMemberships?: GroupMembershipT[];
+};
 
 export type GroupT = InferSelectModel<typeof groups>;
 
