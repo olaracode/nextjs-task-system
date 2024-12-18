@@ -7,10 +7,10 @@ import { ApiError } from "@/lib/errors";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
-  if (!session) return ApiError.unauthorized();
+  if (!session?.user?.id) return ApiError.unauthorized();
   //? Should pagination be added?
   //? Or perhaps add a archived enum to limit query sizes
-  const tasks = await getActiveTasks();
+  const tasks = await getActiveTasks(session.user.id);
   return NextResponse.json({ tasks }, { status: 200 });
 }
 

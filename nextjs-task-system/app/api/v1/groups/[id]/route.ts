@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     if (!body.userId) return ApiError.badRequest("User id is required");
 
-    const [membership] = await createUserMembership(
+    const membership = await createUserMembership(
       session.user.id,
       body.userId,
       id,

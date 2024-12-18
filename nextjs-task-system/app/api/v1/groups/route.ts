@@ -23,7 +23,7 @@ export async function POST(request: NextResponse) {
     return ApiError.badRequest("Name is required");
   }
   try {
-    const newGroup = await createGroup(session.user.id, body.name);
+    const [newGroup] = await createGroup(session.user.id, body.name);
     return NextResponse.json(
       {
         group: newGroup,
