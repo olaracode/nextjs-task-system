@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
   try {
     const parsedBody = createTaskSchema.parse(body);
     const task = await createTask(parsedBody, session.user.id);
-    console.log(task);
     return NextResponse.json(
       {
         task,

@@ -73,7 +73,6 @@ export async function createUserMembership(
 
   const userInGroup = await userMembership(targetId, groupId);
   if (userInGroup) throw new Error(queryErrors.duplicate);
-  console.log(userInGroup);
 
   await db.insert(groupMemberships).values({ userId: targetId, groupId });
   return await db.query.groupMemberships.findFirst({

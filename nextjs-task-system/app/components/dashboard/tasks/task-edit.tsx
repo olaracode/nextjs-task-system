@@ -47,7 +47,6 @@ export default function TaskEdit({
     }
     updateTask(task.id, parsedValues.data)
       .then(() => {
-        console.log("hey");
         onClose();
       }) // if it's successfull close the input
       .catch(() => {

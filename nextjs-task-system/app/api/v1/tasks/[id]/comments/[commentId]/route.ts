@@ -13,7 +13,6 @@ export async function DELETE(
   const session = await auth();
   if (!session?.user?.id) return ApiError.unauthorized();
   const { id, commentId } = await params;
-  console.log(commentId);
   try {
     const [comment] = await deleteComment(session.user.id, commentId);
     if (!comment) return ApiError.server();

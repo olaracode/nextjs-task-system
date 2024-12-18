@@ -89,7 +89,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!response.ok) throw new Error("Unexpected error");
 
         const data = await response.json();
-        console.log(data);
         if (data.task.status === "ARCHIVED") {
           // should be removed from the DOM
           setTasks((prev) => prev.filter((task) => task.id !== taskId));
@@ -255,7 +254,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
       const data = await response.json();
-      console.log(data);
       setTasks((prev) =>
         prev.map((task) =>
           task.id === taskId

@@ -115,7 +115,6 @@ export const UsersGroupProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         const data = await response.json();
-        console.log(data);
         setUsers((prev) =>
           prev?.map((user) =>
             user.id === userId

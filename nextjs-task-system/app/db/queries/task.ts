@@ -55,7 +55,6 @@ export async function updateTask(
 
   const task = await getTaskById(taskId);
   if (!task) throw new Error(queryErrors.notFound);
-  console.log(data);
   await db
     .update(tasks)
     .set({
@@ -87,7 +86,6 @@ export async function updateTaskPriorityStatus(
 }
 
 export async function getTaskById(taskId: string) {
-  console.log(taskId);
   return await db.query.tasks.findFirst({
     where: eq(tasks.id, taskId),
     with: {
@@ -158,7 +156,6 @@ export async function assignTask(
   isUser: boolean = true,
 ) {
   await isUserAdmin(userId);
-  console.log(isUser, targetId);
   const targetExists = isUser
     ? await db.query.users.findFirst({
         where: eq(users.id, targetId),
