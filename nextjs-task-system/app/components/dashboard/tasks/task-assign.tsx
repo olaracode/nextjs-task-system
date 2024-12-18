@@ -9,12 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useUserGroupContext } from "@/contexts/UsersGroupsContext";
 import { GroupT, TaskT, UserT } from "@/db/type";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { toast } from "sonner";
+import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type UserGroup = UserT | GroupT;
 
@@ -55,6 +57,7 @@ export default function TaskAssign({
       onClose();
     });
   }
+
   return (
     <Dialog onOpenChange={onClose} open={open}>
       <DialogContent className="sm:max-w-md">
@@ -82,30 +85,62 @@ export default function TaskAssign({
             <TabsTrigger value="groups">Groups</TabsTrigger>
           </TabsList>
           <TabsContent value="users">
-            {users &&
-              users.map((user) => {
-                return (
-                  <p
-                    onClick={() => setSelected(user)}
-                    key={`task-assign-${task?.id}-${user.id}`}
-                  >
-                    {user.name}
-                  </p>
-                );
-              })}
+            <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+              <div className="space-y-2">
+                {users &&
+                  users.map((user) => (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => setSelected(user)}
+                      key={`task-assign-${task?.id}-${user.id}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-6">
+                          <AvatarImage
+                            src={`${user.image}`}
+                            alt={user.name || "User avatar"}
+                          />
+                          <AvatarFallback>
+                            {user.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{user.name}</span>
+                      </div>
+                      {selected === user && (
+                        <Check className="ml-auto size-4" />
+                      )}
+                    </Button>
+                  ))}
+              </div>
+            </ScrollArea>
           </TabsContent>
           <TabsContent value="groups">
-            {groups &&
-              groups.map((group) => {
-                return (
-                  <p
-                    onClick={() => setSelected(group)}
-                    key={`task-assign-${task?.id}-${group.id}`}
-                  >
-                    {group.name}
-                  </p>
-                );
-              })}
+            <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+              <div className="space-y-2">
+                {groups &&
+                  groups.map((group) => (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => setSelected(group)}
+                      key={`task-assign-${task?.id}-${group.id}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-6">
+                          <AvatarFallback>
+                            {group.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{group.name}</span>
+                      </div>
+                      {selected === group && (
+                        <Check className="ml-auto size-4" />
+                      )}
+                    </Button>
+                  ))}
+              </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
         <DialogFooter className="sm:justify-start">

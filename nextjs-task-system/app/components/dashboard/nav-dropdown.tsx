@@ -9,10 +9,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Users, UserPlus, Menu } from "lucide-react";
+import { LogOut, Users, UserPlus, Menu, User } from "lucide-react";
 import { useUserContext } from "@/contexts/UserContext";
+import GroupList from "./groups-list";
+import { useRouter } from "next/navigation";
 export default function NavDropdown() {
-  const { user, isAdmin } = useUserContext();
+  const { user, isAdmin, logout } = useUserContext();
+  const router = useRouter();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,17 +39,17 @@ export default function NavDropdown() {
             <DropdownMenuSeparator />
             {isAdmin && (
               <>
-                <DropdownMenuItem>
-                  <Users className="mr-2 size-4" />
-                  <span>Users</span>
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/users")}
+                >
+                  <User />
+                  Users
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <UserPlus className="mr-2 size-4" />
-                  <span>Groups</span>
-                </DropdownMenuItem>
+                {/* <UsersList /> */}
+                <GroupList />
               </>
             )}
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOut className="mr-2 size-4" />
               <span>Logout</span>
             </DropdownMenuItem>
