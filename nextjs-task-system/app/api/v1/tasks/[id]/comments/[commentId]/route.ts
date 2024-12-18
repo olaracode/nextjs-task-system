@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { ApiError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-export type CommentRouteParams = {
+type CommentRouteParams = {
   params: Promise<{ id: string; commentId: string }>;
 };
 export async function DELETE(
@@ -25,7 +25,6 @@ export async function DELETE(
       },
     );
   } catch (error) {
-    console.error(error);
     if (error instanceof Error) return ApiError.queryError(error);
     return ApiError.server();
   }

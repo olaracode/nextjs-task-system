@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { ApiError } from "@/lib/errors";
 import { createGroup, getGroups } from "@/db/queries/group";
@@ -15,7 +15,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextResponse) {
+export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return ApiError.unauthorized();
   const body = await request.json();

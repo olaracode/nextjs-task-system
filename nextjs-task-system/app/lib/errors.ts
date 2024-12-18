@@ -5,7 +5,7 @@ class ApiErrors {
   queryError(error: Error, model: string = "Resource") {
     if (error.message === queryErrors.notFound)
       return this.miscError("Not Found", `${model} not found.`, 404);
-    if (error.message === queryErrors.admin) return this.badRequest;
+    if (error.message === queryErrors.admin) return this.badRequest();
     if (error.message === queryErrors.duplicate)
       return this.miscError(
         "Duplication Error",
