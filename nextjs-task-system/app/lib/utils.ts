@@ -14,4 +14,5 @@ export function formatDate(date: Date) {
 export const config = {
   dbUrl: process.env.DATABASE_URL || "",
   testUserId: process.env.TEST_USER_ID || "",
+  redirectURI: process.env.REDIRECT_URI || "http://localhost:3000",
 };
