@@ -9,7 +9,11 @@ const CredentialsLogin = () => {
       className="space-y-2"
       action={async (formData) => {
         "use server";
-        await signIn("credentials", formData);
+        try {
+          await signIn("credentials", formData);
+        } catch (error) {
+          console.error(error);
+        }
       }}
     >
       <Label htmlFor="email">Email</Label>
