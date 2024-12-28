@@ -4,7 +4,7 @@ import {
   deleteGroup,
   updateGroup,
 } from "@/db/queries/group";
-import { auth, unauthorized } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { ApiError } from "@/lib/errors";
 
 type RouteParams = {
@@ -13,7 +13,7 @@ type RouteParams = {
 
 export async function GET() {
   const session = await auth();
-  if (!session) return unauthorized();
+  if (!session) return ApiError.unauthorized();
   return NextResponse.json({
     group: "",
   });
