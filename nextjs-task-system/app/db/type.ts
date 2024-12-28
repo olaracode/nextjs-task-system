@@ -11,9 +11,11 @@ export type GroupMembershipT = InferSelectModel<typeof groupMemberships> & {
   group?: GroupT;
 };
 
-export type UserT = InferSelectModel<typeof users> & {
+type SelectUser = InferSelectModel<typeof users> & {
   groupMemberships?: GroupMembershipT[];
 };
+
+export type UserT = Omit<SelectUser, "password">;
 
 export type GroupT = InferSelectModel<typeof groups>;
 

@@ -15,6 +15,13 @@
       "when": 1734294399705,
       "tag": "0001_peaceful_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1735312684024,
+      "tag": "0002_premium_firedrake",
+      "breakpoints": true
     }
   ]
 }

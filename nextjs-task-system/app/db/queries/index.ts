@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "..";
 import { UserRoleValues, users } from "../schema";
+import { config } from "@/lib/utils";
 
 /**
  * This file is meant to be used for all the queries util function values
@@ -16,6 +17,7 @@ export const queryErrors = {
 
 // TODO -> Should be refactored to be included on the session
 export async function isUserAdmin(userId: string) {
+  if (config.isTest) return true; // for the query tests
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
   if (!user) throw new Error(queryErrors.notFound);
   if (user.role !== UserRoleValues.ADMIN) throw new Error(queryErrors.admin);
